@@ -15,9 +15,12 @@ import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
+
 public class IntroToLogin {
 
 	public JFrame frmHarmonyBank;
+	private RoundedJTextField Usernamefld;
+	private RoundedJPasswordField Passwordfld;
 	
 
 	/**
@@ -68,16 +71,6 @@ public class IntroToLogin {
 		IntroAndLogin.add(Login, "name_69800733726000");
 		Login.setLayout(null);
 		
-		JPanel UsernamePanel = new JPanel();
-		UsernamePanel.setBackground(new Color(255, 255, 255));
-		UsernamePanel.setBounds(87, 179, 272, 38);
-		Login.add(UsernamePanel);
-		
-		JPanel PasswordPanel = new JPanel();
-		PasswordPanel.setBackground(new Color(255, 255, 255));
-		PasswordPanel.setBounds(87, 253, 272, 38);
-		Login.add(PasswordPanel);
-		
 		JButton LoginBtn = new JButton("Login");
 		LoginBtn.setBounds(107, 341, 226, 38);
 		Login.add(LoginBtn);
@@ -94,6 +87,20 @@ public class IntroToLogin {
 		});
 		SignUpbtn.setBounds(107, 397, 226, 38);
 		Login.add(SignUpbtn);
+		
+		Usernamefld = new RoundedJTextField(20);
+		Usernamefld.setBorder(null);
+		Usernamefld.setBounds(71, 162, 306, 44);
+		Usernamefld.setOpaque(false);
+		Login.add(Usernamefld);
+		Usernamefld.setColumns(10);
+		
+		Passwordfld = new RoundedJPasswordField(20);
+		Passwordfld.setBorder(null);
+		Passwordfld.setEchoChar('*');
+		Passwordfld.setBounds(71, 216, 303, 44);
+		Passwordfld.setOpaque(false);
+		Login.add(Passwordfld);
 		
 		JLabel NextBtn = new JLabel("Next");
 		NextBtn.addMouseListener(new MouseAdapter() {
