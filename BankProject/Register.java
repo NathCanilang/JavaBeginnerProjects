@@ -5,6 +5,8 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 import java.util.Date;
@@ -24,15 +26,18 @@ import javax.swing.JLabel;
 import java.awt.Font;
 import java.awt.Image;
 
-import javax.swing.JTextField;
 import com.toedter.calendar.JDateChooser;
 import javax.swing.JComboBox;
 import javax.swing.JRadioButton;
 import java.beans.PropertyChangeListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.beans.PropertyChangeEvent;
-import javax.swing.JPasswordField;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.SwingConstants;
+
 
 public class Register extends JFrame {
 	
@@ -45,14 +50,16 @@ public class Register extends JFrame {
 	private Image img_ShowPass = new ImageIcon(Register.class.getResource("Images/ShowPassword.png")).getImage().getScaledInstance(31,21,Image.SCALE_SMOOTH);
 	private Image img_ClosePass = new ImageIcon(Register.class.getResource("Images/ClosePassword.png")).getImage().getScaledInstance(31,21,Image.SCALE_SMOOTH);
 	private JPanel RegisterPane;
-	private JTextField FIrstNamefld, LastNamefld, MiddleNamefld, ContacyNumfld, Emailfld, textField, Usernamefld ;
+	private RoundedJTextField FirstNamefld, LastNamefld, MiddleNamefld, ContacyNumfld, Emailfld, IDNumfld, Usernamefld ;
 	private JLabel FirstNamelbl, LastNamelbl, MiddleNamelbl, warninglbl, Birthdaylbl, ContactNumlbl, Emaillbl, Genderlbl,IDSelectlbl,
-	IDNumberlbl, Usernamelbl, Passwordlbl, ConfirmPasswordpnl, PersonalInformationTitle, AccountCredentialsTitle, Show_1;
-	private JPasswordField Passwordfld, ConPassfld;
-	private JLabel Show, Close, IDlbl;
-	private JRadioButton MaleOption, FemaleOption
-;	
-	private JLabel Close_1;
+	IDNumberlbl, Usernamelbl, Passwordlbl, ConfirmPasswordpnl, PersonalInformationTitle, AccountCredentialsTitle, Show_1, Close_1;
+	private RoundedJPasswordField Passwordfld, ConPassfld;
+	private JLabel Show, Close, IDlbl, lblNewLabel;
+	private JRadioButton MaleOption, FemaleOption;	
+	private JComboBox<String> IDTypeComBox;
+	String url = "jdbc:mysql://localhost:3306/bankdatabase";
+	String user = "root";
+	String password = "";
 
 	/**
 	 * Launch the application.
@@ -73,6 +80,7 @@ public class Register extends JFrame {
 	/**
 	 * Create the frame.
 	 */
+	@SuppressWarnings("deprecation")
 	public Register() {
 		setTitle("Create Account");
 		
@@ -176,7 +184,6 @@ public class Register extends JFrame {
 		BrithdayChooser.setBounds(10, 158, 206, 27);
 		page1.add(BrithdayChooser);
 		
-		
 		Birthdaylbl = new JLabel("Selelct the date of your birth");
 		Birthdaylbl.setBounds(10, 130, 162, 25);
 		page1.add(Birthdaylbl);
@@ -205,46 +212,100 @@ public class Register extends JFrame {
 		RadioButton.add(MaleOption);
 		RadioButton.add(FemaleOption);
 		
-		FIrstNamefld = new JTextField();
-		FIrstNamefld.setBounds(10, 93, 206, 27);
-		page1.add(FIrstNamefld);
-		FIrstNamefld.setColumns(10);
+		FirstNamefld = new RoundedJTextField(30);
+		FirstNamefld.setHorizontalAlignment(SwingConstants.CENTER);
+		FirstNamefld.setBorder(null);
+		FirstNamefld.setBounds(10, 93, 206, 27);
+		FirstNamefld.setOpaque(false);
+		page1.add(FirstNamefld);
+		FirstNamefld.setColumns(10);
 		
-		LastNamefld = new JTextField();
+		LastNamefld = new RoundedJTextField(30);
+		LastNamefld.setHorizontalAlignment(SwingConstants.CENTER);
+		LastNamefld.setBorder(null);
 		LastNamefld.setBounds(243, 93, 206, 27);
+		LastNamefld.setOpaque(false);
 		page1.add(LastNamefld);
 		LastNamefld.setColumns(10);
 		
-		MiddleNamefld = new JTextField();
+		MiddleNamefld = new RoundedJTextField(30);
+		MiddleNamefld.setHorizontalAlignment(SwingConstants.CENTER);
+		MiddleNamefld.setBorder(null);
 		MiddleNamefld.setBounds(466, 93, 206, 27);
+		MiddleNamefld.setOpaque(false);
 		page1.add(MiddleNamefld);
 		MiddleNamefld.setColumns(10);
 		
-		ContacyNumfld = new JTextField();
+		ContacyNumfld = new RoundedJTextField(30);
+		ContacyNumfld.setHorizontalAlignment(SwingConstants.CENTER);
+		ContacyNumfld.setBorder(null);
 		ContacyNumfld.setBounds(243, 158, 206, 27);
+		ContacyNumfld.setOpaque(false);
 		page1.add(ContacyNumfld);
 		ContacyNumfld.setColumns(10);
 		
-		Emailfld = new JTextField();
+		Emailfld = new RoundedJTextField(30);
+		Emailfld.setHorizontalAlignment(SwingConstants.CENTER);
+		Emailfld.setBorder(null);
 		Emailfld.setBounds(466, 158, 206, 27);
+		Emailfld.setOpaque(false);
 		page1.add(Emailfld);
 		Emailfld.setColumns(10);
 		
 		
 		JButton CreateAccbtn = new JButton("Create");
+		
 		CreateAccbtn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				
-				int choice = JOptionPane.showConfirmDialog(null, "Are the information that you input are finalized?", "Confirmation", JOptionPane.YES_NO_OPTION);
-				if (choice == JOptionPane.YES_OPTION) {
-					RegisterInfo.removeAll();
-					RegisterInfo.add(page3);
-					RegisterInfo.repaint();
-					RegisterInfo.revalidate();
-					
-				}
-				
-			}
+		    public void actionPerformed(ActionEvent e) {
+		        String SelectedID = (String) IDTypeComBox.getSelectedItem();
+		        java.util.Date utilDate = BrithdayChooser.getDate();
+		        java.sql.Date Date = null;
+		        if (utilDate != null) {
+		            Date = new java.sql.Date(utilDate.getTime());
+		        }
+		        int choice = JOptionPane.showConfirmDialog(null, "Are the information that you input are finalized?", "Confirmation!!", JOptionPane.YES_NO_OPTION);
+		        String selectedGender = null;
+		        if (MaleOption.isSelected()) {
+		            selectedGender = "Male";
+		        } else if (FemaleOption.isSelected()) {
+		            selectedGender = "Female";
+		        }
+		        if (!FirstNamefld.getText().equals("") && !LastNamefld.getText().equals("") && !MiddleNamefld.getText().equals("") && !ContacyNumfld.getText().equals("")
+		                && !Emailfld.getText().equals("") && !IDNumfld.getText().equals("") && !Usernamefld.getText().equals("") && !Passwordfld.getText().equals("") && selectedGender == null && SelectedID == "" && utilDate == null) {
+		            if (choice == JOptionPane.YES_OPTION) {
+		                try {
+		                    Class.forName("com.mysql.cj.jdbc.Driver");
+		                    Connection con = DriverManager.getConnection(url, user, password);
+		                    PreparedStatement ps = con.prepareStatement("INSERT INTO userinfo (FirstName, LastName, MiddleName, DateOfBirth, ContactNumber, EmailAddress, Gender, IDType, IDNumber, Username, Password) "
+		                            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+		                    ps.setString(1, FirstNamefld.getText());
+		                    ps.setString(2, LastNamefld.getText());
+		                    ps.setString(3, MiddleNamefld.getText());
+		                    ps.setDate(4, Date);
+		                    ps.setString(5, ContacyNumfld.getText());
+		                    ps.setString(6, Emailfld.getText());
+		                    ps.setString(7, selectedGender);
+		                    ps.setString(8, SelectedID);
+		                    ps.setString(9, IDNumfld.getText());
+		                    ps.setString(10, Usernamefld.getText());
+		                    ps.setString(11, Passwordfld.getText());
+		                    ps.executeUpdate();
+
+
+		                } catch (Exception a) {
+		                    a.printStackTrace();
+		                }
+		                RegisterInfo.removeAll();
+		                RegisterInfo.add(page3);
+		                RegisterInfo.repaint();
+		                RegisterInfo.revalidate();
+		            }
+
+		        } else
+		            JOptionPane.showMessageDialog(null, "Please fill out all the neccesary information needed or doule check if there no more warning", "Warining", JOptionPane.WARNING_MESSAGE);
+
+		    }
 		});
 		CreateAccbtn.setBounds(624, 343, 111, 27);
 		page2.add(CreateAccbtn);
@@ -271,7 +332,7 @@ public class Register extends JFrame {
 		page2.add(IDlbl);
 		
 		String[] IDType = {"", "National ID", "Driver's License", "Student ID", "Company ID"};
-		JComboBox<String> IDTypeComBox = new JComboBox<>(IDType);
+		IDTypeComBox = new JComboBox<>(IDType);
 
 		IDTypeComBox.addItemListener(new ItemListener() {
 		    public void itemStateChanged(ItemEvent e) {
@@ -297,7 +358,7 @@ public class Register extends JFrame {
 		IDNumberlbl.setBounds(248, 52, 179, 27);
 		page2.add(IDNumberlbl);
 		
-		 Usernamelbl = new JLabel("Enter Username");
+		Usernamelbl = new JLabel("Enter Username");
 		Usernamelbl.setBounds(12, 156, 179, 27);
 		page2.add(Usernamelbl);
 		
@@ -348,24 +409,59 @@ public class Register extends JFrame {
 		Close.setVisible(false);
 		page2.add(Close);
 		
-		textField = new JTextField();
-		textField.setBounds(248, 86, 315, 23);
-		page2.add(textField);
-		textField.setColumns(10);
+		IDNumfld = new RoundedJTextField(30);
+		IDNumfld.setHorizontalAlignment(SwingConstants.CENTER);
+		IDNumfld.setBorder(null);
+		IDNumfld.setBounds(248, 86, 315, 23);
+		IDNumfld.setOpaque(false);
+		page2.add(IDNumfld);
+		IDNumfld.setColumns(10);
 		
-		Usernamefld = new JTextField();
+		Usernamefld = new RoundedJTextField(30);
+		Usernamefld.setHorizontalAlignment(SwingConstants.CENTER);
+		Usernamefld.setBorder(null);
 		Usernamefld.setBounds(12, 183, 228, 21);
+		Usernamefld.setOpaque(false);
 		page2.add(Usernamefld);
 		Usernamefld.setColumns(10);
 		
 		
-		Passwordfld = new JPasswordField();
+		Passwordfld = new RoundedJPasswordField(30);
+		Passwordfld.setHorizontalAlignment(SwingConstants.CENTER);
+		Passwordfld.setBorder(null);
 		Passwordfld.setBounds(250, 183, 228, 21);
+		Passwordfld.setOpaque(false);
 		page2.add(Passwordfld);
 		Passwordfld.setEchoChar('*');
 		
-		ConPassfld = new JPasswordField();
+		lblNewLabel = new JLabel("");
+		lblNewLabel.setBounds(248, 283, 138, 27);
+		page2.add(lblNewLabel);
+		
+		ConPassfld = new RoundedJPasswordField(30);
+		ConPassfld.getDocument().addDocumentListener(new DocumentListener() {
+		    public void changedUpdate(DocumentEvent e) {
+		        updateLabel();
+		    }
+		    public void removeUpdate(DocumentEvent e) {
+		        updateLabel();
+		    }
+		    public void insertUpdate(DocumentEvent e) {
+		        updateLabel();
+		    }
+
+		    public void updateLabel() {
+		        if (!Passwordfld.getText().equals(ConPassfld.getText())) {
+		            lblNewLabel.setText("Must be the same");
+		        } else {
+		            lblNewLabel.setText(null);
+		        }
+		    }
+		});
+		ConPassfld.setHorizontalAlignment(SwingConstants.CENTER);
+		ConPassfld.setBorder(null);
 		ConPassfld.setBounds(250, 231, 228, 22);
+		ConPassfld.setOpaque(false);
 		page2.add(ConPassfld);
 		ConPassfld.setEchoChar('*');
 		
@@ -403,6 +499,8 @@ public class Register extends JFrame {
 		Close_1.setVisible(false);
 		page2.add(Close_1);
 		
+		
+		
 		JButton backbtn = new JButton("Back to Login");
 		backbtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -412,6 +510,8 @@ public class Register extends JFrame {
 		});
 		backbtn.setBounds(287, 320, 176, 31);
 		page3.add(backbtn);
+		
+		
 		
 	}
 }
